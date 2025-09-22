@@ -328,7 +328,25 @@ if __name__ == "__main__":
 # --- Q&A Chatbot Functionality ---
 def chatbot_qa(query: str, index_name: str = "empress") -> Dict[str, Any]:
     """
-    Answers user questions based on the PDF knowledge base using the RAG pipeline.
+    You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. 
+Your role is to provide users with clear, empathetic, and deeply informative answers to their questions. 
+
+When responding:
+1. **Be comprehensive and well-structured** – organize your response into clear sections, You can use the format below when you think it is best, but can also be dynamic by adopting better ones when need arise, be dynamic to suite each question
+   - Overview
+   - Causes or Contributing Factors 
+   - Management & Lifestyle Recommendations  
+   - When to Seek Professional Help (if relevant).
+   - Disclaimer to consult a doctor when necessary.
+
+these format above are just to guide you, you can always adjust it as the case may be, and use what suite the questions the most.
+
+2. Ground your advice in the retrieved knowledge base as much as possible. If no relevant information is available, rely on your medical expertise but be transparent about it.
+
+3. Personalize your response to the user’s concern, showing empathy and reassurance in a compassionate tone. 
+
+4. Avoid short or generic answers – aim for depth, clarity, elaborate, comprehensive, well structured and practical guidance, with good fonts and relevants emojis. 
+
 
     Args:
         query (str): The user's question.
@@ -350,7 +368,7 @@ def chatbot_qa(query: str, index_name: str = "empress") -> Dict[str, Any]:
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
-        return {"response": "No relevant information found in the knowledge base.", "retrieved_documents": []}
+        return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
 
     final_response = augment_and_generate_response(query, retrieved_docs)
 
@@ -363,7 +381,7 @@ def chatbot_qa(query: str, index_name: str = "empress") -> Dict[str, Any]:
 # --- Doctor Symptoms Matching Functionality ---
 def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict[str, Any]:
     """
-    Matches patient symptoms to doctors based on the knowledge base.
+    Matches patient symptoms to doctors based on the knowledge base, and return the name of most befitting Doctor you ranked that best match the symptoms provided.
 
     Args:
         symptoms (str): A string of patient symptoms (e.g., "fever, cough, headache").
@@ -389,8 +407,8 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
 
     # Craft a specific prompt for doctor matching
     prompt_template = """
-    You are a helpful assistant that matches doctors to patient symptoms based on the provided context.
-    Extract doctor names and their specializations if they are mentioned in relation to the symptoms.
+    You are a helpful Medical triage assistant that matches doctors to patient symptoms based on the provided context.
+    Matches patient symptoms to doctors based on the knowledge base, and return the name of most befitting Doctor you ranked that best match the symptoms provided.
     If no specific doctor is mentioned for the symptoms, state that based on the provided information.
 
     Context:
@@ -418,7 +436,7 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
 # --- Affirmation Recommendation Functionality ---
 def affirmation_recommendation(categories: List[str], index_name: str = "empress") -> Dict[str, Any]:
     """
-    Suggests 3 affirmations at random based on chosen categories from the PDF knowledge base.
+    Suggests 3 affirmations at random based on each chosen categories from the PDF knowledge base, that is, a random affirmation from each category.
 
     Args:
         categories (List[str]): A list of affirmation categories chosen by the patient.
@@ -444,8 +462,8 @@ def affirmation_recommendation(categories: List[str], index_name: str = "empress
 
     # Use LLM to extract and select affirmations
     prompt_template = """
-    You are an assistant that extracts positive affirmations from the provided context.
-    From the context, identify and list all distinct positive affirmations related to the categories: {categories}.
+    You are an expert assistant that extracts positive affirmations from the provided context.
+    From the context,Suggests 3 affirmations at random based on each chosen categories from the PDF knowledge base, that is, a random affirmation from each category.: {categories}.
     Ensure each affirmation is on a new line. Do not include any other text or numbering.
 
     Context:
@@ -481,7 +499,7 @@ def affirmation_recommendation(categories: List[str], index_name: str = "empress
 # --- Product Recommendation Functionality ---
 def product_recommendation(user_input: str, index_name: str = "empress") -> Dict[str, Any]:
     """
-    Recommends products relevant to user input (symptoms or needs) by querying the PDF knowledge base.
+    Recommends products relevant to user input (symptoms or needs) by querying the PDF knowledge base, ensure the best matched products based on the symptoms provided are returned.
 
     Args:
         user_input (str): User's symptoms or product needs.
@@ -499,7 +517,7 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
     )
 
     # Craft a query to find products related to the user's input
-    query = f"Recommend products that address or are related to: {user_input}. Provide product names and a brief description."
+    query = f"Recommend products that address or are related to: {user_input} by querying the PDF knowledge base, ensure the best matched products based on the symptoms provided are returned. Provide product names and a brief description."
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
@@ -507,9 +525,9 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
 
     # Use LLM to extract and recommend products
     prompt_template = """
-    You are a helpful assistant that recommends products based on the provided context and user input.
-    From the context, identify and list product names and their descriptions that are relevant to the user's needs.
-    List each product on a new line with its description. If no specific products are mentioned, state that.
+    You are a helpful assistant that recommends products based on the provided symptoms from context and user input.
+    From the context, identify and list product names and their descriptions that are relevant to the user's needs and symptoms.
+    List each product on a new line with its description. If no specific products are mentioned, provide them with the email and website links for further enquiry.
 
     Context:
     {context}
