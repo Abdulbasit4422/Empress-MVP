@@ -428,7 +428,7 @@ these format above are just to guide you, you can always adjust it as the case m
 
 
     # Craft a query to find doctors related to the symptoms
-    default_system_prompt = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert who provides clear, empathetic, deeply informative answers that are comprehensive, well-structured (overview, causes, management, when to seek help, disclaimer), grounded in retrieved knowledge or transparent expertise, personalized with compassion, and never short or generic but elaborate, practical, and engaging with clarity, good structure, and relevant emojis." 
+    default_system_prompt = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert who provides clear, empathetic, deeply informative answers that are comprehensive, well-structured (overview, causes, management, when to seek help, disclaimer), grounded in retrieved knowledge or transparent expertise, personalized with compassion, and never short or generic but elaborate, practical, and engaging with clarity, good structure, and relevant emojis" 
     chosen_system_prompt = system_prompt or default_system_prompt
     
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
@@ -437,22 +437,10 @@ these format above are just to guide you, you can always adjust it as the case m
         return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
     
     
-    final_response_raw = augment_and_generate_response(
-        query=query,
-        retrieved_documents=retrieved_docs,
-        llm_model_name="gemini-2.5-flash",
-        # if augment_and_generate_response accepts system_prompt, pass it:
-        system_prompt=chosen_system_prompt
-    )
+    raw = augment_and_generate_response(chosen_system_prompt, query, retrieved_docs, llm_model_name="gemini-2.5-flash")
+    cleaned_response = clean_output(raw)
 
-
-    cleaned_response = clean_output(final_response_raw)
-
-    return {
-        "response": cleaned_response,
-        "retrieved_documents": retrieved_docs,
-    }
-
+    return {"response": cleaned_response, "retrieved_documents": retrieved_docs}
 
 
 
