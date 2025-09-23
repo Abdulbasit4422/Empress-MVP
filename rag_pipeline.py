@@ -391,7 +391,16 @@ these format above are just to guide you, you can always adjust it as the case m
     
     final_response = augment_and_generate_response(query, retrieved_docs)
 
-    return {"response": final_response, "retrieved_documents": retrieved_docs}
+    # 🔑 CLEAN the response to remove escape characters
+    def clean_output(text: str) -> str:
+        return text.replace("\\n", "\n").replace('\\"', '"').strip()
+
+    cleaned_response = clean_output(final_response)
+
+    return {
+        "response": cleaned_response,
+        "retrieved_documents": retrieved_docs,
+    }
 
 
 
