@@ -373,7 +373,7 @@ def clean_output(text: Any) -> str:
         decoded = text
 
     # 3) Final safe replacements (catch any remaining literal backslash-n or escaped quotes)
-    decoded = decoded.replace("\\n", "\n").replace("\\t", "\t")
+    decoded = decoded.replace("\\n", " ").replace("\\t", " ")
     decoded = decoded.replace('\\"', '"').replace("\\'", "'")
 
     # Trim extra whitespace/newlines
@@ -431,7 +431,7 @@ these format above are just to guide you, you can always adjust it as the case m
         return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
     
     
-    final_response = augment_and_generate_response(system_prompt, retrieved_docs)
+    final_response = augment_and_generate_response(f"{system_prompt}\n\nUser Question: {query}", retrieved_docs)
 
 
     cleaned_response = clean_output(final_response)
