@@ -336,6 +336,48 @@ if __name__ == "__main__":
         #     print(f"Error deleting Pinecone index: {e}")
         pass # This comment is to ensure the finally block is not empty
 
+import json
+import codecs
+from typing import Any
+
+def clean_output(text: Any) -> str:
+    """
+    Robustly clean model output that may contain escaped sequences or be JSON-quoted.
+    Returns a plain Python string with real newlines and quotes.
+    """
+    if text is None:
+        return ""
+
+    # Ensure string
+    if not isinstance(text, str):
+        text = str(text)
+
+    # 1) If the whole string looks like a JSON string (starts+ends with quotes), try json.loads
+    stripped = text.strip()
+    if (stripped.startswith('"') and stripped.endswith('"')) or (stripped.startswith("'") and stripped.endswith("'")):
+        try:
+            loaded = json.loads(stripped)
+            if isinstance(loaded, str):
+                text = loaded
+            else:
+                # if json decoded to dict/list, convert to pretty string
+                text = json.dumps(loaded, ensure_ascii=False, indent=2)
+        except Exception:
+            # fall through if not valid JSON
+            pass
+
+    # 2) Decode common escape sequences like \\n, \\t, \\" using unicode_escape
+    try:
+        decoded = codecs.decode(text, "unicode_escape")
+    except Exception:
+        decoded = text
+
+    # 3) Final safe replacements (catch any remaining literal backslash-n or escaped quotes)
+    decoded = decoded.replace("\\n", "\n").replace("\\t", "\t")
+    decoded = decoded.replace('\\"', '"').replace("\\'", "'")
+
+    # Trim extra whitespace/newlines
+    return decoded.strip()
 
 
 
@@ -391,10 +433,7 @@ these format above are just to guide you, you can always adjust it as the case m
     
     final_response = augment_and_generate_response(query, retrieved_docs)
 
-    # 🔑 CLEAN the response to remove escape characters
-    def clean_output(text: str) -> str:
-        return text.replace("\\n", "\n").replace('\\"', '"').strip()
-
+    
     cleaned_response = clean_output(final_response)
 
     return {
