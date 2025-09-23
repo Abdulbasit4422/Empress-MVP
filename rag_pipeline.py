@@ -202,9 +202,24 @@ def augment_and_generate_response(
 
     # Create a prompt template
     template = """
-    You are a helpful assistant. Use the following retrieved context to answer the question.
-    If you don\'t know the answer, just say that you don\'t have enough information.
-    Keep the answer concise and to the point.
+        You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. 
+Your role is to provide users with clear, empathetic, and deeply informative answers to their questions. 
+
+When responding:
+1. **Be comprehensive and well-structured** – organize your response into clear sections, You can use the format below when you think it is best, but can also be dynamic by adopting better ones when need arise, be dynamic to suite each question
+   - Overview
+   - Causes or Contributing Factors 
+   - Management & Lifestyle Recommendations  
+   - When to Seek Professional Help (if relevant).
+   - Disclaimer to consult a doctor when necessary.
+
+these format above are just to guide you, you can always adjust it as the case may be, and use what suite the questions the most.
+
+2. Ground your advice in the retrieved knowledge base as much as possible. If no relevant information is available, rely on your medical expertise but be transparent about it.
+
+3. Personalize your response to the user’s concern, showing empathy and reassurance in a compassionate tone. 
+
+4. Avoid short or generic answers – aim for depth, clarity, elaborate, comprehensive, well structured and practical guidance, with good fonts and relevants emojis. 
 
     Context:
     {context}
@@ -365,11 +380,15 @@ these format above are just to guide you, you can always adjust it as the case m
         embedding=embeddings,
     )
 
+
+    # Craft a query to find doctors related to the symptoms
+    query = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. Your role is to provide users with clear, Elaborate, empathetic, and deeply informative answers to their questions." 
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
         return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
-
+    
+    
     final_response = augment_and_generate_response(query, retrieved_docs)
 
     return {"response": final_response, "retrieved_documents": retrieved_docs}
@@ -399,7 +418,7 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
     )
 
     # Craft a query to find doctors related to the symptoms
-    query = f"Which doctors treat patients with the following symptoms: {symptoms}? Provide their specialization if available."
+    query = f"You are a helpful Medical triage assistant that matches doctors to patient symptoms based on the provided context, Matches patient symptoms {symptoms} to doctors based on the knowledge base, and return the name of most befitting Doctor you ranked that best match the symptoms provided. If no specific doctor is mentioned for the symptoms, state that based on the provided information."
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
@@ -408,7 +427,7 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
     # Craft a specific prompt for doctor matching
     prompt_template = """
     You are a helpful Medical triage assistant that matches doctors to patient symptoms based on the provided context.
-    Matches patient symptoms to doctors based on the knowledge base, and return the name of most befitting Doctor you ranked that best match the symptoms provided.
+    Matches patient symptoms to doctors based on the knowledge base, and return ONLY the name of most befitting Doctor you ranked that best match the symptoms provided. ONLY DOCTOR'S NAME 
     If no specific doctor is mentioned for the symptoms, state that based on the provided information.
 
     Context:
