@@ -383,7 +383,10 @@ def clean_output(text: Any) -> str:
 
 
 # --- Q&A Chatbot Functionality ---
-def chatbot_qa(system_prompt: str, index_name: str = "empress") -> Dict[str, Any]:
+# Ensure clean_output is defined once (above) and reused
+# import json, codecs already included earlier
+
+def chatbot_qa(query: str, index_name: str = "empress", system_prompt: Optional[str] = None) -> Dict[str, Any]:
     """
     You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. 
 Your role is to provide users with clear, empathetic, and deeply informative answers to their questions. 
@@ -412,7 +415,7 @@ these format above are just to guide you, you can always adjust it as the case m
     Returns:
         Dict[str, Any]: A dictionary containing the LLM's response and retrieved documents.
     """    
-    print(f"\n--- Q&A Chatbot: Processing query \'{system_prompt}\' ---")
+    print(f"\n--- Q&A Chatbot: Processing query \'{query}\' ---")
     # For Q&A, we don't need to ingest new data, just retrieve and generate
     # We will assume the index is already populated with Empress_merged.pdf
 
@@ -425,17 +428,25 @@ these format above are just to guide you, you can always adjust it as the case m
 
 
     # Craft a query to find doctors related to the symptoms
-    system_prompt = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. Your role is to provide users with clear, Elaborate, empathetic, and deeply informative answers to their questions." 
-    retrieved_docs = retrieve_documents(system_prompt, vectorstore, top_k=10)
+    default_system_prompt = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert who provides clear, empathetic, deeply informative answers that are comprehensive, well-structured (overview, causes, management, when to seek help, disclaimer), grounded in retrieved knowledge or transparent expertise, personalized with compassion, and never short or generic but elaborate, practical, and engaging with clarity, good structure, and relevant emojis." 
+    chosen_system_prompt = system_prompt or default_system_prompt
+    
+    retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
         return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
     
     
-    final_response = augment_and_generate_response(f"{system_prompt}\n\nUser Question: {query}", retrieved_docs)
+    final_response_raw = augment_and_generate_response(
+        query=query,
+        retrieved_documents=retrieved_docs,
+        llm_model_name="gemini-2.5-flash",
+        # if augment_and_generate_response accepts system_prompt, pass it:
+        system_prompt=chosen_system_prompt
+    )
 
 
-    cleaned_response = clean_output(final_response)
+    cleaned_response = clean_output(final_response_raw)
 
     return {
         "response": cleaned_response,
