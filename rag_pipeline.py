@@ -423,6 +423,7 @@ these format above are just to guide you, you can always adjust it as the case m
     )
 
 
+
     # Craft a query to find doctors related to the symptoms
     system_prompt = f"You are Ask Empress, a trusted Peri+Menopausal Health and Wellness Expert. Your role is to provide users with clear, Elaborate, empathetic, and deeply informative answers to their questions." 
     retrieved_docs = retrieve_documents(system_prompt, vectorstore, top_k=10)
