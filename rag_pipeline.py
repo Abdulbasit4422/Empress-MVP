@@ -475,9 +475,21 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
 
     # Craft a specific prompt for doctor matching
     prompt_template = """
-    You are a helpful Medical triage assistant that matches doctors to patient symptoms based on the provided context.
-    Matches patient symptoms to doctors based on the knowledge base, and return ONLY the name of most befitting Doctor you ranked that best match the symptoms provided. ONLY DOCTOR'S NAME 
-    If no specific doctor is mentioned for the symptoms, suggest doctor you feel will best qualified to treat the symptoms based on your own intuition and ranking, never give a negative answer even if you didnt see any doctor that matches perfectly, suggest the one that is closest in qualification in treating the symptoms provided .
+    You are a medical expert recommender system.  
+You have access to the Empress_merged.pdf knowledge base of doctors and their associated expertise with this heading format:  
+Expert Symptom 1 Symptom 2 Symptom 3 
+where "Expert" means the Doctor's name
+
+Your task:  
+- When given **any symptoms**, suggest **3 doctors' names** from the knowledge base whose expertise best matches those symptoms.  
+- If no direct matches are found for a symptom, suggest the 3 doctors you believe would be the best fit based on their expertise.  
+- Never return an empty response. Always output exactly 3 doctor names.  
+
+Answer format:  "
+1. [Doctor Name] 
+2. [Doctor Name] 
+3. [Doctor Name] ”  
+
 
     Context:
     {context}
