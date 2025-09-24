@@ -348,44 +348,37 @@ import json
 import codecs
 from typing import Any
 
-def clean_output(text: Any) -> str:
+import re
+
+def clean_output(raw_response: str) -> str:
     """
-    Robustly clean model output that may contain escaped sequences or be JSON-quoted.
-    Returns a plain Python string with real newlines and quotes.
+    Cleans the raw LLM response by removing Markdown formatting (#, *, -) 
+    and newlines, leaving only plain text.
     """
-    if text is None:
-        return ""
+    # Remove leading/trailing whitespace from each line
+    lines = [line.strip() for line in raw_response.split('\n')]
 
-    # Ensure string
-    if not isinstance(text, str):
-        text = str(text)
+    # Remove multiple consecutive blank lines
+    cleaned_lines = []
+    for line in lines:
+        if line or (cleaned_lines and cleaned_lines[-1] != ''):
+            cleaned_lines.append(line)
+    cleaned_response = '\n'.join(cleaned_lines)
 
-    # 1) If the whole string looks like a JSON string (starts+ends with quotes), try json.loads
-    stripped = text.strip()
-    if (stripped.startswith('"') and stripped.endswith('"')) or (stripped.startswith("'") and stripped.endswith("'")):
-        try:
-            loaded = json.loads(stripped)
-            if isinstance(loaded, str):
-                text = loaded
-            else:
-                # if json decoded to dict/list, convert to pretty string
-                text = json.dumps(loaded, ensure_ascii=False, indent=2)
-        except Exception:
-            # fall through if not valid JSON
-            pass
+    # Replace multiple spaces with a single space
+    cleaned_response = re.sub(r'\s+', ' ', cleaned_response)
 
-    # 2) Decode common escape sequences like \\n, \\t, \\" using unicode_escape
-    try:
-        decoded = codecs.decode(text, "unicode_escape")
-    except Exception:
-        decoded = text
+    # 🔴 Remove Markdown symbols (#, *, -)
+    cleaned_response = re.sub(r'[#!*\-\n\n####ð¬ï¸¶â]', '', cleaned_response)
 
-    # 3) Final safe replacements (catch any remaining literal backslash-n or escaped quotes)
-    decoded = decoded.replace("\\n", " ").replace("\\t", " ")
-    decoded = decoded.replace('\\"', '"').replace("\\'", "'")
+    # 🔴 Remove all newline characters (\n, \n\n, etc.)
+    cleaned_response = cleaned_response.replace('\n', ' ')
 
-    # Trim extra whitespace/newlines
-    return decoded.strip()
+    # Final trim
+    cleaned_response = cleaned_response.strip()
+
+    return cleaned_response
+
 
 
 
