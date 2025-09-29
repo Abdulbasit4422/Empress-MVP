@@ -49,8 +49,8 @@ embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_a
 
 def ingest_data(
     file_path: str,
-    chunk_size: int = 1000,
-    chunk_overlap: int = 200,
+    chunk_size: int = 500,
+    chunk_overlap: int = 100,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> List[Document]:
     """
@@ -135,7 +135,7 @@ def embed_and_store_data(
             spec=ServerlessSpec(cloud='aws', region='us-east-1')
         )
         print(f"Index {index_name} created. Waiting for index to be ready...")
-        time.sleep(60) # Wait for index to be ready
+        time.sleep(300) # Wait for index to be ready
     else:
         print(f"Using existing Pinecone index: {index_name}")    # Store documents in Pinecone
     vectorstore = PineconeVectorStore.from_documents(
@@ -256,8 +256,8 @@ def run_rag_pipeline(
     file_paths: List[str],
     user_query: str,
     index_name: str = "rag-knowledge-base",
-    chunk_size: int = 1000,
-    chunk_overlap: int = 200,
+    chunk_size: int = 500,
+    chunk_overlap: int = 100,
     top_k_retrieval: int = 5,
     retrieval_filters: Optional[Dict[str, Any]] = None,
     llm_model_name: str = "gemini-2.5-flash",
@@ -311,8 +311,8 @@ if __name__ == "__main__":
         # Clean up any existing index before running the example
         delete_pinecone_index("empress")
         print("\n--- Running Full RAG Pipeline Example ---")
-        query = "What are the symptoms of a migraine and who treats heart conditions?"
-        file_paths_to_ingest = ["Empress_merged.pdf"]
+        query = "What are hot flashes"
+        file_paths_to_ingest = ["Empress_mvp.pdf"]
         
         rag_output = run_rag_pipeline(
             file_paths=file_paths_to_ingest,
@@ -481,14 +481,14 @@ Expert Symptom 1 Symptom 2 Symptom 3
 where "Expert" means the Doctor's name
 
 Your task:  
-- When given **any symptoms**, suggest **3 doctors' names** from the knowledge base whose expertise best matches those symptoms.  
-- If no direct matches are found for a symptom, suggest the 3 doctors you believe would be the best fit based on their expertise.  
+- When given at least 1 symptoms, suggest 3 doctors' names and their respective specialty as provided in the first page of the knowledge base (Empress_mvp.pdf) whose expertise best matches those symptoms.  
+- If no direct matches are found for any symptom input, suggest 3 doctors randomly from the 5 list of General Doctors provided in the Knowledge base which include any of  Dr. Madison Fandel,  Dr. Vera Singleton,  Dr. Heather Barrett,  Dr. Leigh Lewis, or  Dr. Polly Watson .  
 - Never return an empty response. Always output exactly 3 doctor names.  
 
 Answer format:  "
-1. [Doctor Name] 
-2. [Doctor Name] 
-3. [Doctor Name] ”  
+1. [Doctors' Name, Specialty] 
+2. [Doctors' Name, Specialty] 
+3. [Doctors' Name, Specialty] ”  
 
 
     Context:
@@ -597,7 +597,7 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
     )
 
     # Craft a query to find products related to the user's input
-    query = f"Recommend products that address or are related to: {user_input} by querying the PDF knowledge base, ensure the best matched products based on the symptoms provided are returned. Provide product names and a brief description."
+    query = f"Recommend 3 products that address or are related to: {user_input} by querying the second page of Empress_mvp.pdf knowledge base, ensure the best matched products based on the symptoms provided are returned. Provide 3 product names only."
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
@@ -606,7 +606,7 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
     # Use LLM to extract and recommend products
     prompt_template = """
     You are a helpful assistant that recommends products based on the provided symptoms from context and user input.
-    From the context, identify and list product names and their descriptions that are relevant to the user's needs and symptoms.
+    From the context, identify and list 3 product names that are relevant to the user's needs based on the symptoms provided.
     List each product on a new line with its description. If no specific products are mentioned, provide them with the email and website links for further enquiry.
 
     Context:
