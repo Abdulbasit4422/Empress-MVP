@@ -477,13 +477,14 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
     prompt_template = """
     You are a medical expert recommender system.  
 You have access to the Empress_merged.pdf knowledge base of doctors and their associated expertise with this heading format:  
-Expert Symptom 1 Symptom 2 Symptom 3 
-where "Expert" means the Doctor's name
+Doctors' Name Symptom 1 Symptom 2 Symptom 3 
+where "Doctors' Name" means the Doctors' Name
 
 Your task:  
 - When given at least 1 symptoms, suggest 3 doctors' names and their respective specialty as provided in the first page of the knowledge base (Empress_mvp.pdf) whose expertise best matches those symptoms.  
-- If no direct matches are found for any symptom input, suggest 3 doctors randomly from the 5 list of General Doctors provided in the Knowledge base which include any of  Dr. Madison Fandel,  Dr. Vera Singleton,  Dr. Heather Barrett,  Dr. Leigh Lewis, or  Dr. Polly Watson .  
-- Never return an empty response. Always output exactly 3 doctor names.  
+- If no direct matches are found for any symptom input, suggest 3 doctors randomly from the 5 list of General Doctors provided in the Knowledge base which include any of:
+  Dr. Madison Fandel,  Dr. Vera Singleton,  Dr. Heather Barrett,  Dr. Leigh Lewis, or  Dr. Polly Watson .  
+- Never return an empty response. Always output exactly 3 doctor names . Do Not Concoct Names that does not exist in the Knowledge base!!! 
 
 Answer format:  "
 1. [Doctors' Name, Specialty] 
@@ -606,7 +607,8 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
     # Use LLM to extract and recommend products
     prompt_template = """
     You are a helpful assistant that recommends products based on the provided symptoms from context and user input.
-    From the context, identify and list 3 product names that are relevant to the user's needs based on the symptoms provided.
+    From the context, identify and list 3 product names only that are relevant to the user's needs based on the symptoms provided in the format below:
+    [Product Name], [Product Name], [Product Name].
     List each product on a new line with its description. If no specific products are mentioned, provide them with the email and website links for further enquiry.
 
     Context:
