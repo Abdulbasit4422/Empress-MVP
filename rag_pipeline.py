@@ -200,7 +200,7 @@ def augment_and_generate_response(
     print(f"Augmenting and generating response for query: \033[1m'{query}'\033[0m")
 
     # Initialize the LLM
-    llm = ChatGoogleGenerativeAI(model=llm_model_name, google_api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model=llm_model_name, temperature=0.3 google_api_key=GOOGLE_API_KEY)
 
     # Use the provided system_prompt or a default one
     if system_prompt is None:
@@ -471,7 +471,7 @@ def doctor_symptoms_matching(symptoms: str, index_name: str = "empress") -> Dict
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
-        return {"response": "No doctors found for the given symptoms in the knowledge base.", "retrieved_documents": []}
+        return {"response": "1. [Dr. Vera Singleton - General Doctor],  2. [Dr. Heather Barrett - General Doctor],  3. [Dr. Leigh Lewis - General Doctor]", "retrieved_documents": []}
 
     # Craft a specific prompt for doctor matching
     prompt_template = """
@@ -500,7 +500,7 @@ Answer format:  "
     Doctor Recommendations:
     """
     
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1, google_api_key=GOOGLE_API_KEY)
     prompt = ChatPromptTemplate.from_template(prompt_template)
     context_text = "\n\n".join([doc.page_content for doc in retrieved_docs])
     rag_chain = (prompt | llm | StrOutputParser())
@@ -598,7 +598,8 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
     )
 
     # Craft a query to find products related to the user's input
-    query = f"Recommend 3 products that address or are related to: {user_input} by querying the second page of Empress_mvp.pdf knowledge base, ensure the best matched products based on the symptoms provided are returned. Provide 3 product names only."
+    query = f"Find product descriptions in the knowledge base that address: {user_input}. Return only actual product entries found in the documents, do not make up or invent any products."
+
     retrieved_docs = retrieve_documents(query, vectorstore, top_k=10)
 
     if not retrieved_docs:
@@ -606,20 +607,23 @@ def product_recommendation(user_input: str, index_name: str = "empress") -> Dict
 
     # Use LLM to extract and recommend products
     prompt_template = """
-    You are a helpful assistant that recommends products based on the provided symptoms from context and user input.
-    From the context, identify and list 3 product names only that are relevant to the user's needs based on the symptoms provided in the format below:
-    [Product Name], [Product Name], [Product Name].
-    List each product on a new line with its description. If no specific products are mentioned, provide them with the email and website links for further enquiry.
+   You are a product recommendation assistant.
+ONLY use the product information provided in the context below.
+Do not create or imagine new products. 
+If no matching products are found in the context, respond with: 
+"No specific products found. Please contact us at [EMAIL] or visit [WEBSITE]."
 
-    Context:
-    {context}
+Context:
+{context}
 
-    User Input: {user_input}
+User Input: {user_input}
 
-    Product Recommendations:
+Return format:
+- List exactly 3 product names found in the context that best match the symptoms, each with a short description.
+- If fewer than 3 relevant products exist, list only those available.
     """
     
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1, google_api_key=GOOGLE_API_KEY)
     prompt = ChatPromptTemplate.from_template(prompt_template)
     context_text = "\n\n".join([doc.page_content for doc in retrieved_docs])
     rag_chain = (prompt | llm | StrOutputParser())
