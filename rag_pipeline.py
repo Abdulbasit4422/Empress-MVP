@@ -200,7 +200,7 @@ def augment_and_generate_response(
     print(f"Augmenting and generating response for query: \033[1m'{query}'\033[0m")
 
     # Initialize the LLM
-    llm = ChatGoogleGenerativeAI(model=llm_model_name, temperature=0.3 google_api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model=llm_model_name, temperature=0.3, google_api_key=GOOGLE_API_KEY)
 
     # Use the provided system_prompt or a default one
     if system_prompt is None:
