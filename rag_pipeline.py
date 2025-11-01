@@ -182,7 +182,7 @@ def retrieve_documents(
 def augment_and_generate_response(
     query: str,
     retrieved_documents: list,
-    llm_model_name: str = "gemini-2.5-flash",
+    llm_model_name: str = "gemini-3.5-flash",
     system_prompt: str | None = None,
 ) -> str:
     """
@@ -260,7 +260,7 @@ def run_rag_pipeline(
     chunk_overlap: int = 100,
     top_k_retrieval: int = 5,
     retrieval_filters: Optional[Dict[str, Any]] = None,
-    llm_model_name: str = "gemini-2.5-flash",
+    llm_model_name: str = "gemini-3.5-flash",
 ) -> Dict[str, Any]:
     """
     Orchestrates the complete RAG pipeline from data ingestion to augmented generation.
@@ -438,7 +438,7 @@ these format above are just to guide you, you can always adjust it as the case m
         return {"response": "I am a peri+menopausal Health and Wellness Expert, Kindly ask question within my context .", "retrieved_documents": []}
     
     
-    raw = augment_and_generate_response(query, retrieved_docs, llm_model_name="gemini-2.5-flash", system_prompt=chosen_system_prompt )
+    raw = augment_and_generate_response(query, retrieved_docs, llm_model_name="gemini-3.5-flash", system_prompt=chosen_system_prompt )
     cleaned_response = clean_output(raw)
 
     return {"response": cleaned_response, "retrieved_documents": retrieved_docs}
@@ -500,7 +500,7 @@ Answer format:  "
     Doctor Recommendations:
     """
     
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1, google_api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3, google_api_key=GOOGLE_API_KEY)
     prompt = ChatPromptTemplate.from_template(prompt_template)
     context_text = "\n\n".join([doc.page_content for doc in retrieved_docs])
     rag_chain = (prompt | llm | StrOutputParser())
